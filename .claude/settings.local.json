@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(.venv/Scripts/python.exe -c \"from src.config import *; print\\('Config OK'\\); print\\('CLASSIFICATION_TARGET =', CLASSIFICATION_TARGET\\); print\\('REGRESSION_TARGET     =', REGRESSION_TARGET\\); print\\('STAY_THRESHOLD_YEARS  =', STAY_THRESHOLD_YEARS\\); print\\('EXCLUDE_COLUMNS       =', EXCLUDE_COLUMNS\\)\")",
+      "Bash(.venv/Scripts/python.exe -c \"import pandas as pd; df = pd.read_csv\\('data/raw/F500.csv', nrows=2\\); print\\(df.columns.tolist\\(\\)\\)\")",
+      "Bash(.venv/Scripts/python.exe -c ' *)",
+      "Bash(.venvScriptspython.exe -c ' *)"
+    ]
+  }
+}

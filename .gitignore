@@ -1,0 +1,33 @@
+# Virtual environment
+.venv/
+
+# Data files (never commit raw employee data)
+data/
+
+# Excel and CSV files anywhere in the project
+*.xlsx
+*.xls
+*.csv
+
+# Trained models
+models/
+
+# Serialized model files
+*.pkl
+*.joblib
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# IDE settings
+.idea/
+.vscode/
+
+# Environment variables (API keys, secrets)
+.env
+
+# OS files
+.DS_Store
+Thumbs.db
