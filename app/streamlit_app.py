@@ -6,7 +6,7 @@ Employee Retention Predictor — web interface.
 Run with:
     streamlit run app/streamlit_app.py
 
-Upload an F500 Workday XLSX export to automatically clean the data and
+Upload an F500 Workday CSV (or XLSX) export to automatically clean the data and
 receive per-employee predictions from two pre-trained models:
   - Model 1 (Logistic Regression): Will the employee stay 3+ more years?
   - Model 2 (Random Forest):       Predicted total years of service.
@@ -20,7 +20,7 @@ import tempfile
 import streamlit as st
 import pandas as pd
 
-from src.data_loader import load_xlsx, filter_rows, check_blanks
+from src.data_loader import load_data, filter_rows, check_blanks
 from src.preprocessor import encode_all, load_feature_columns, align_inference_columns
 from src.predict import load_model, predict_classification, predict_regression
 
@@ -43,9 +43,9 @@ st.markdown(
 st.divider()
 
 uploaded_file = st.file_uploader(
-    "Upload F500 XLSX file",
-    type=["xlsx"],
-    help="The standard Workday F500 export. The first 6 header rows are removed automatically.",
+    "Upload F500 file (CSV or XLSX)",
+    type=["csv", "xlsx"],
+    help="The standard Workday F500 export. The first 7 header rows are removed automatically.",
 )
 
 if uploaded_file is not None:
@@ -58,11 +58,12 @@ if uploaded_file is not None:
             try:
                 # ── Step 1: Load ─────────────────────────────────────────
                 st.write("Loading and validating file…")
-                with tempfile.NamedTemporaryFile(delete=False, suffix=".xlsx") as tmp:
+                ext = os.path.splitext(uploaded_file.name)[1].lower()
+                with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as tmp:
                     tmp.write(uploaded_file.read())
                     tmp_path = tmp.name
 
-                df_raw = load_xlsx(tmp_path)
+                df_raw = load_data(tmp_path)
                 os.unlink(tmp_path)
 
                 # ── Step 2: Filter ────────────────────────────────────────
@@ -150,10 +151,10 @@ if uploaded_file is not None:
         )
 
 else:
-    st.info("Upload an F500 XLSX file above to get started.")
+    st.info("Upload an F500 CSV or XLSX file above to get started.")
     st.markdown(
         "**Requirements:**\n"
-        "- Standard Workday F500 export format (6-row header)\n"
+        "- Standard Workday F500 export format (7-row header)\n"
         "- Required columns: ID, Years of Current Service, Job Code, Job Profile, "
         "Job Exempt, Employee Type, Contingent Worker Type, Location, Company, "
         "Organization, Job Family Base, Job Family, Compensation Grade, "

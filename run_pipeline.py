@@ -1,10 +1,10 @@
 """
 run_pipeline.py
 ---------------
-Main entry point. Run this after placing your F500 XLSX in data/raw/.
+Main entry point. Run this after placing your F500 CSV (or XLSX) in data/raw/.
 
 Steps:
-  1. Load XLSX (skip 6 header rows, select required columns)
+  1. Load file (skip 7 header rows, select required columns)
   2. Filter out Pre-Workday records
   3. Validate: stop if any unexpected blank values are found
   4. Encode all features (custom rules + OHE)
@@ -17,7 +17,7 @@ Usage:
     python run_pipeline.py
 """
 
-from src.data_loader import load_xlsx, filter_rows, check_blanks
+from src.data_loader import load_data, filter_rows, check_blanks
 from src.preprocessor import (
     encode_all,
     engineer_targets,
@@ -34,7 +34,7 @@ def main():
     print(" EMPLOYEE RETENTION PREDICTION PIPELINE")
     print("=" * 60)
 
-    df = load_xlsx()
+    df = load_data()
     df = filter_rows(df)
     check_blanks(df)
 

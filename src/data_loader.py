@@ -13,9 +13,9 @@ from src.config import (
 _BLANK_ALLOWED = {"contingent_worker_type", "job_exempt"}
 
 
-def load_xlsx(filepath: str = DATA_FILEPATH) -> pd.DataFrame:
+def load_data(filepath: str = DATA_FILEPATH) -> pd.DataFrame:
     """
-    Load the F500 Workday XLSX export.
+    Load the F500 Workday export (CSV or XLSX).
 
     Skips the first HEADER_ROWS_TO_SKIP rows (report metadata), selects
     only the REQUIRED_COLUMNS, and standardises column names.
@@ -23,12 +23,22 @@ def load_xlsx(filepath: str = DATA_FILEPATH) -> pd.DataFrame:
     if not os.path.exists(filepath):
         raise FileNotFoundError(
             f"[ERROR] Data file not found: {filepath}\n"
-            f"  --> Place your XLSX in data/raw/ and update "
+            f"  --> Place your file in data/raw/ and update "
             f"DATA_FILENAME in src/config.py."
         )
 
-    df = pd.read_excel(filepath, engine="openpyxl", skiprows=HEADER_ROWS_TO_SKIP)
-    print(f"[INFO] Loaded XLSX: {filepath}")
+    ext = os.path.splitext(filepath)[1].lower()
+    if ext == ".csv":
+        df = pd.read_csv(filepath, skiprows=HEADER_ROWS_TO_SKIP)
+        print(f"[INFO] Loaded CSV: {filepath}")
+    elif ext in (".xlsx", ".xls"):
+        df = pd.read_excel(filepath, engine="openpyxl", skiprows=HEADER_ROWS_TO_SKIP)
+        print(f"[INFO] Loaded XLSX: {filepath}")
+    else:
+        raise ValueError(
+            f"[ERROR] Unsupported file type '{ext}'. "
+            "Please provide a .csv, .xlsx, or .xls file."
+        )
     print(f"[INFO] Raw shape: {df.shape[0]} rows × {df.shape[1]} columns")
 
     missing_cols = [c for c in REQUIRED_COLUMNS if c not in df.columns]

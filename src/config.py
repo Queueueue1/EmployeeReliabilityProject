@@ -7,13 +7,13 @@ MODELS_DIR    = os.path.join(ROOT_DIR, "models")
 REPORTS_DIR   = os.path.join(ROOT_DIR, "reports")
 
 # Update to your actual XLSX filename placed in data/raw/
-DATA_FILENAME = "F500.xlsx"
+DATA_FILENAME = "F500.csv"
 DATA_FILEPATH = os.path.join(RAW_DATA_DIR, DATA_FILENAME)
 
-# The Workday F500 export has 6 non-data header rows before the column row
-HEADER_ROWS_TO_SKIP = 6
+# Number of non-data rows before the column header row in your Workday export.
+HEADER_ROWS_TO_SKIP = 7
 
-# Exact column names as they appear in the xlsx header row
+# Exact column names as they appear in the file header row
 REQUIRED_COLUMNS = [
     "ID",
     "Years of Current Service",
