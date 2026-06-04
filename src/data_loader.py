@@ -2,7 +2,7 @@ import os
 import pandas as pd
 
 from src.config import (
-    DATA_FILEPATH,
+    RAW_DATA_DIR,
     REQUIRED_COLUMNS,
     HEADER_ROWS_TO_SKIP,
     FILTER_OUT_ORGANIZATION,
@@ -13,7 +13,7 @@ from src.config import (
 _BLANK_ALLOWED = {"contingent_worker_type", "job_exempt"}
 
 
-def load_data(filepath: str = DATA_FILEPATH) -> pd.DataFrame:
+def load_data(filepath: str = None) -> pd.DataFrame:
     """
     Load the F500 Workday export (CSV or XLSX).
 
@@ -58,9 +58,12 @@ def filter_rows(df: pd.DataFrame) -> pd.DataFrame:
     """Remove Pre-Workday placeholder rows by organization and company."""
     before = len(df)
 
-    org_mask     = df["organization"].astype(str).str.strip() == FILTER_OUT_ORGANIZATION
-    company_mask = df["company"].astype(str).str.strip()      == FILTER_OUT_COMPANY
-    df = df[~(org_mask | company_mask)].reset_index(drop=True)
+    org_mask      = df["organization"].astype(str).str.strip().isin(
+                        [FILTER_OUT_ORGANIZATION, "Legacy Benefit Default"]
+                    )
+    company_mask  = df["company"].astype(str).str.strip()      == FILTER_OUT_COMPANY
+    job_code_mask = df["job_code"].astype(str).str.strip().str.lower() == "zzzzzz"
+    df = df[~(org_mask | company_mask | job_code_mask)].reset_index(drop=True)
 
     removed = before - len(df)
     print(
@@ -97,6 +100,38 @@ def check_blanks(df: pd.DataFrame) -> None:
         )
 
     print("[INFO] Blank check passed — no missing values found.")
+
+
+def load_all_data(directory: str = RAW_DATA_DIR) -> pd.DataFrame:
+    """
+    Load, filter, and merge all CSV/XLSX files found in `directory`.
+
+    Each file is processed individually (load → filter → blank-check) and
+    then concatenated into a single DataFrame.
+    """
+    supported = (".csv", ".xlsx", ".xls")
+    files = sorted(
+        os.path.join(directory, f)
+        for f in os.listdir(directory)
+        if os.path.splitext(f)[1].lower() in supported
+    )
+    if not files:
+        raise FileNotFoundError(
+            f"[ERROR] No CSV or XLSX files found in: {directory}\n"
+            "  --> Place your data file(s) there and re-run."
+        )
+
+    dfs = []
+    for filepath in files:
+        print(f"\n[INFO] Processing: {os.path.basename(filepath)}")
+        df = load_data(filepath)
+        df = filter_rows(df)
+        check_blanks(df)
+        dfs.append(df)
+
+    merged = pd.concat(dfs, ignore_index=True)
+    print(f"\n[INFO] Merged {len(files)} file(s) → {len(merged)} total rows.")
+    return merged
 
 
 def _clean_column_names(df: pd.DataFrame) -> pd.DataFrame:

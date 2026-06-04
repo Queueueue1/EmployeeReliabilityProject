@@ -6,10 +6,6 @@ PROCESSED_DIR = os.path.join(ROOT_DIR, "data", "processed")
 MODELS_DIR    = os.path.join(ROOT_DIR, "models")
 REPORTS_DIR   = os.path.join(ROOT_DIR, "reports")
 
-# Update to your actual XLSX filename placed in data/raw/
-DATA_FILENAME = "F500.csv"
-DATA_FILEPATH = os.path.join(RAW_DATA_DIR, DATA_FILENAME)
-
 # Number of non-data rows before the column header row in your Workday export.
 HEADER_ROWS_TO_SKIP = 7
 
@@ -59,3 +55,5 @@ CLASSIFICATION_REPORT_CSV = os.path.join(REPORTS_DIR, "classification_results.cs
 REGRESSION_REPORT_CSV     = os.path.join(REPORTS_DIR, "regression_results.csv")
 PROCESSED_DATA_CSV        = os.path.join(PROCESSED_DIR, "processed_data.csv")
 FEATURE_COLUMNS_FILE      = os.path.join(MODELS_DIR, "feature_columns.json")
+CATEGORY_VALUES_FILE      = os.path.join(MODELS_DIR, "category_values.json")
+JOB_CODE_LOOKUP_FILE      = os.path.join(MODELS_DIR, "job_code_lookup.json")

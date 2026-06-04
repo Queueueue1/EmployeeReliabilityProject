@@ -14,7 +14,15 @@ from src.config import (
     PROCESSED_DIR,
     MODELS_DIR,
     FEATURE_COLUMNS_FILE,
+    CATEGORY_VALUES_FILE,
+    JOB_CODE_LOOKUP_FILE,
 )
+
+_CATEGORY_COLS = [
+    "job_profile", "employee_type", "contingent_worker_type",
+    "location", "company", "organization",
+    "job_family_base", "job_family", "pay_range_frequency",
+]
 
 
 def encode_all(df: pd.DataFrame) -> pd.DataFrame:
@@ -109,6 +117,28 @@ def get_model_feature_columns(df: pd.DataFrame) -> list:
     return [c for c in df.columns if c not in EXCLUDE_FROM_FEATURES]
 
 
+def save_category_values(df: pd.DataFrame) -> None:
+    """Save sorted unique values for each categorical column (call on filtered raw df)."""
+    values = {}
+    for col in _CATEGORY_COLS:
+        if col in df.columns:
+            values[col] = sorted(df[col].dropna().astype(str).unique().tolist())
+    os.makedirs(MODELS_DIR, exist_ok=True)
+    with open(CATEGORY_VALUES_FILE, "w") as f:
+        json.dump(values, f)
+    print(f"[INFO] Category values saved → {CATEGORY_VALUES_FILE}")
+
+
+def load_category_values() -> dict:
+    if not os.path.exists(CATEGORY_VALUES_FILE):
+        raise FileNotFoundError(
+            f"[ERROR] Category values file not found: {CATEGORY_VALUES_FILE}\n"
+            "  --> Run run_pipeline.py first to train the models."
+        )
+    with open(CATEGORY_VALUES_FILE) as f:
+        return json.load(f)
+
+
 def save_feature_columns(cols: list) -> None:
     os.makedirs(MODELS_DIR, exist_ok=True)
     with open(FEATURE_COLUMNS_FILE, "w") as f:
@@ -123,6 +153,44 @@ def load_feature_columns() -> list:
             "  --> Run run_pipeline.py first to train the models."
         )
     with open(FEATURE_COLUMNS_FILE) as f:
+        return json.load(f)
+
+
+def save_job_code_lookup(df: pd.DataFrame) -> None:
+    """
+    Build a job-code → field-defaults lookup from the most common values seen
+    per job code in the filtered raw DataFrame.
+
+    Fields captured: job_profile, job_family, job_family_base,
+                     compensation_grade, job_exempt, pay_range_frequency.
+    """
+    _lookup_cols = [
+        "job_profile", "job_family", "job_family_base",
+        "compensation_grade", "job_exempt", "pay_range_frequency",
+    ]
+    lookup = {}
+    for code, group in df.groupby("job_code"):
+        entry = {}
+        for col in _lookup_cols:
+            mode_vals = group[col].dropna().mode()
+            entry[col] = str(mode_vals.iloc[0]) if len(mode_vals) > 0 else ""
+        entry["job_exempt"] = (
+            "Yes" if str(entry["job_exempt"]).strip().lower() == "yes" else "No"
+        )
+        lookup[str(code).strip()] = entry
+    os.makedirs(MODELS_DIR, exist_ok=True)
+    with open(JOB_CODE_LOOKUP_FILE, "w") as f:
+        json.dump(lookup, f)
+    print(f"[INFO] Job-code lookup ({len(lookup)} codes) saved → {JOB_CODE_LOOKUP_FILE}")
+
+
+def load_job_code_lookup() -> dict:
+    if not os.path.exists(JOB_CODE_LOOKUP_FILE):
+        raise FileNotFoundError(
+            f"[ERROR] Job-code lookup not found: {JOB_CODE_LOOKUP_FILE}\n"
+            "  --> Run run_pipeline.py first to train the models."
+        )
+    with open(JOB_CODE_LOOKUP_FILE) as f:
         return json.load(f)
 
 

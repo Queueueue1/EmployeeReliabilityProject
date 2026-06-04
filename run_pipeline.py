@@ -17,12 +17,14 @@ Usage:
     python run_pipeline.py
 """
 
-from src.data_loader import load_data, filter_rows, check_blanks
+from src.data_loader import load_all_data
 from src.preprocessor import (
     encode_all,
     engineer_targets,
     get_model_feature_columns,
     save_feature_columns,
+    save_category_values,
+    save_job_code_lookup,
     save_processed_data,
 )
 from src.train_classification import train_classifier
@@ -34,9 +36,9 @@ def main():
     print(" EMPLOYEE RETENTION PREDICTION PIPELINE")
     print("=" * 60)
 
-    df = load_data()
-    df = filter_rows(df)
-    check_blanks(df)
+    df = load_all_data()
+    save_category_values(df)
+    save_job_code_lookup(df)
 
     df = encode_all(df)
     df = engineer_targets(df)
